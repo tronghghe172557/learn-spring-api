@@ -3,9 +3,10 @@ server:
 
 spring:
   profiles:
-    active: dev # change to 'prod' when deploying to production
+    active: ${SPRING_PROFILES_ACTIVE:dev} # change to 'prod' when deploying to production
   application:
     name: learn-spring-api
+  
   jpa: # JPA configuration
     hibernate: # Hibernate configuration
       ddl-auto: update # Automatically update the database schema
@@ -31,6 +32,7 @@ spring:
         max-file-size: 2MB # Maximum file size for uploads -> implement in the future
         max-request-size: 2MB # Maximum request size for uploads -> implement in the future
 
+# SpringDoc OpenAPI configuration
 springdoc:
   api-docs:
     path: /api-docs
@@ -40,15 +42,15 @@ springdoc:
     path: /api/v1/docs
   model-and-view-converters:
     pageable-converter:
-      enabled: true # Bật tính năng tự động chuyển đổi Pageable thành các query parameter
+      enabled: true # Enable automatic Pageable to query parameter conversion
 
+# Logging configuration
 logging:
   level:
     root: INFO
     com.giatrong.learning.learnspringapi: DEBUG
-    org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
   
   pattern:
     console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
@@ -61,28 +63,25 @@ logging:
     max-history: 30
     clean-history-on-start: false
 
+# Actuator configuration
 management:
   endpoints:
     web:
       exposure:
-        # Cách hiện đại để "mở" các endpoint. Liệt kê tất cả ở đây là đủ.
         include: health,info,metrics,prometheus,loggers,env,threaddump,heapdump
-      base-path: /actuator # Giữ nguyên đường dẫn chung cho actuator
+      base-path: /actuator
 
-  # Tùy chỉnh chi tiết cho từng endpoint cụ thể
   endpoint:
     health:
-      show-details: when-authorized # Hoặc 'always' khi phát triển
+      show-details: when-authorized
       show-components: always
 
-  # Bật/tắt các chỉ báo sức khỏe (health indicator)
   health:
     diskspace:
       enabled: true
     db:
       enabled: true
 
-  # Cấu hình chung cho metrics
   metrics:
     tags:
       application: ${spring.application.name}
@@ -93,17 +92,15 @@ management:
       percentiles:
         http.server.requests: 0.5, 0.95, 0.99
 
-  # Cấu hình RIÊNG cho Prometheus (đã được chuyển ra ngoài theo chuẩn mới)
   prometheus:
     metrics:
       export:
         enabled: true
-        step: 30s # Tần suất Prometheus scrape, 30 giây là hợp lý
+        step: 30s
 
-  # Cấu hình cho Distributed Tracing
   tracing:
     sampling:
-      probability: 0.1 # Lấy mẫu 10% request
+      probability: 0.1
 
 # Application metadata
 application:

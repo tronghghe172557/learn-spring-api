@@ -1,54 +1,57 @@
-# Multi-stage build for Spring Boot application
-FROM openjdk:21-jdk-slim as builder
+# ====== Build stage ======
+FROM eclipse-temurin:21-jdk-alpine as builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
-COPY mvnw .
-COPY mvnw.cmd .
+# Copy Maven wrapper and config files
+COPY mvnw ./
 COPY .mvn .mvn
-COPY pom.xml .
+COPY pom.xml ./
 
-# Download dependencies
-RUN ./mvnw dependency:go-offline -B
+# Make mvnw executable & download dependencies (cached)
+RUN chmod +x ./mvnw \
+    && ./mvnw -B dependency:resolve-plugins dependency:resolve
 
 # Copy source code
 COPY src src
 
 # Build the application
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests \
+    -Dmaven.compiler.debug=false \
+    -Dmaven.compiler.debuglevel=none
 
-# Runtime stage
-FROM openjdk:21-jre-slim
 
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# ====== Runtime stage ======
+FROM eclipse-temurin:21-jre-alpine
 
 # Create app user
-RUN groupadd -r spring && useradd -r -g spring spring
+RUN addgroup -S spring && adduser -S spring -G spring
 
 # Set working directory
 WORKDIR /app
 
-# Create logs directory
+# Prepare logs directory
 RUN mkdir -p /app/logs && chown -R spring:spring /app
 
-# Copy the built jar from builder stage
+# Copy jar from builder
 COPY --from=builder /app/target/*.jar app.jar
-
-# Change ownership to spring user
 RUN chown spring:spring app.jar
 
-# Switch to spring user
+# Switch to non-root user
 USER spring
 
-# Expose port
+# Expose app port
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/api/v1/auth/test || exit 1
+# Env variables
+ENV SPRING_PROFILES_ACTIVE=dev
+ENV SERVER_PORT=8080
+ENV JVM_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget -qO- http://localhost:${SERVER_PORT}/api/v1/auth/test || exit 1
+
+# Start app
+ENTRYPOINT exec java $JVM_OPTS -jar app.jar

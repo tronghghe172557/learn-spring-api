@@ -50,6 +50,21 @@ public class ApiExceptionHandler {
                 .body(ApiResponse.error(errorCode.getStatusCode().value(), errorCode.getMessage()));
     }
 
+      /**
+     * Handle resource not found exceptions
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        log.warn("Resource not found for request to {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(
+                        ErrorCode.RESOURCE_NOT_FOUND.getCode(),
+                        ex.getMessage()
+                ));
+    }
+
     // ========== VALIDATION EXCEPTIONS ==========
     
     /**

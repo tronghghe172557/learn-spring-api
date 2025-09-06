@@ -6,6 +6,7 @@ import com.giatrong.learning.learnspringapi.dto.request.User.UserUpdateRequest;
 import com.giatrong.learning.learnspringapi.dto.dtos.User.UserDto;
 import com.giatrong.learning.learnspringapi.entity.User;
 import com.giatrong.learning.learnspringapi.enums.Role;
+import com.giatrong.learning.learnspringapi.exception.AppException;
 import com.giatrong.learning.learnspringapi.exception.ResourceNotFoundException;
 import com.giatrong.learning.learnspringapi.mapper.UserMapper;
 import com.giatrong.learning.learnspringapi.repository.UserRepository;
@@ -96,7 +97,7 @@ public class UserService {
                 .map(userMapper::toDto)
                 .orElseThrow(() -> {
                     log.error("User not found with id: {}", id);
-                    return new ResourceNotFoundException("User not found with id: " + id);
+                    throw new ResourceNotFoundException("User not found with id: " + id);
                 });
         log.info("Successfully retrieved user with id: {}", id);
         return user;

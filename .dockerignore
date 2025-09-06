@@ -47,4 +47,5 @@ docker-compose.yaml
 # Other
 README.md
 .env
+.env.uat
 *.md

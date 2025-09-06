@@ -60,7 +60,9 @@ bin/
 # SPRING BOOT & ENV
 # ========================
 *.env
+.env.uat
 application-dev.yml
+application-uat.yml
 application-local.yml
 application-test.yml
 application-prod.yml
@@ -92,8 +94,3 @@ yarn-error.log*
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
-
-# ========================
-# GITHUB - COPILOT (if you have GitHub Copilot - copilot-instructions)
-# ========================
-.github/

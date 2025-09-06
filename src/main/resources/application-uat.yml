@@ -1,0 +1,94 @@
+spring:
+  # Database configuration for UAT
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://mysql:3306/user_management}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA configuration for UAT
+  jpa:
+    hibernate:
+      ddl-auto: validate # Use validate in UAT to ensure schema consistency
+    show-sql: false # Disable SQL logging in UAT
+
+  # Redis configuration for UAT
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+    cache:
+      type: redis
+      redis:
+        time-to-live: 7200 # 2 hours
+
+  # Kafka configuration for UAT
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 5
+      batch-size: 16384
+      linger-ms: 10
+    consumer:
+      group-id: user-group-uat
+      auto-offset-reset: earliest
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.giatrong.learning.learnspringapi.dto.response.UserDto
+
+# JWT configuration for UAT
+jwt:
+  access:
+    secret: ${JWT_ACCESS_SECRET}
+    expiration: ${JWT_EXPIRATION:1800} # 30 minutes for UAT
+  refresh:
+    secret: ${JWT_REFRESH_SECRET}
+    expiration: 259200 # 3 days
+
+# UAT-specific logging
+logging:
+  level:
+    root: INFO
+    com.giatrong.learning.learnspringapi: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: INFO
+    org.springframework.kafka: WARN
+
+# UAT-specific management
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+  tracing:
+    sampling:
+      probability: 0.3 # Higher sampling in UAT for testing

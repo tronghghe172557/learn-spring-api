@@ -85,9 +85,9 @@ public enum ErrorCode {
     USER_EXISTED(HttpStatus.CONFLICT.value(), "User existed", HttpStatus.CONFLICT), // Maps to USER_ALREADY_EXISTS
     USER_NOT_EXISTED(HttpStatus.NOT_FOUND.value(), "User is not existed", HttpStatus.NOT_FOUND), // Maps to
                                                                                                  // USER_NOT_FOUND
-    UNAUTHORIZED(HttpStatus.FORBIDDEN.value(), "You do not have permission", HttpStatus.FORBIDDEN); // Maps to
+    UNAUTHORIZED(HttpStatus.FORBIDDEN.value(), "You do not have permission", HttpStatus.FORBIDDEN),
+    ROLE_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "Role not found", HttpStatus.NOT_FOUND);
                                                                                                     // ACCESS_DENIED
-
     // == Constructor ==
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

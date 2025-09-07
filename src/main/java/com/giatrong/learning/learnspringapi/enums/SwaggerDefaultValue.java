@@ -95,7 +95,7 @@ public final class SwaggerDefaultValue {
     public static final String PASSWORD_ACCOUNT_DESC = "Password for the account";
     public static final String FULL_NAME_DESC = "Full name of the user";
     public static final String EMAIL_DESC = "Email address of the user";
-    public static final String ROLE_DESC = "Role of the user";
+    public static final String ROLE_DESC = "RoleEnum of the user";
     
     // ========== HEALTH FIELD DESCRIPTIONS ==========
     public static final String OVERALL_STATUS_DESC = "Overall system status";

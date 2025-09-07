@@ -57,7 +57,7 @@ src/main/java/com/giatrong/learning/learnspringapi/
 │   ├── AppException.java            # Custom application exception
 │   └── ResourceNotFoundException.java # Resource not found exception
 ├── enums/                           # Enumerations
-│   ├── Role.java                    # User roles (USER, ADMIN)
+│   ├── Role.java                    # User roleEnums (USER, ADMIN)
 │   └── ErrorCode.java               # Standardized error codes
 ├── validation/                      # Custom validation logic
 ├── util/                            # Utility classes
@@ -77,7 +77,7 @@ src/main/resources/
 ## Key Features
 
 - **JWT Authentication**: Stateless authentication with token-based security
-- **Role-Based Access Control**: User roles with method-level security annotations
+- **Role-Based Access Control**: User roleEnums with method-level security annotations
 - **Database Integration**: MySQL with JPA/Hibernate, automatic schema updates
 - **API Documentation**: Interactive Swagger UI at `/api/v1/docs`
 - **Request Validation**: Jakarta Bean Validation with custom error messages
@@ -121,7 +121,7 @@ src/main/resources/
 ## Database Schema
 
 The application uses MySQL with automatic schema generation through Hibernate DDL. Key entities include:
-- **Users**: Core user information with roles and authentication details
+- **Users**: Core user information with roleEnums and authentication details
 - Future entities can be added following the same pattern
 
 ## Build & Deployment
@@ -354,4 +354,4 @@ public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable Long id) {
 1. **Registration**: Hash password → Save user → Generate JWT
 2. **Login**: Authenticate credentials → Load user → Generate JWT
 3. **Request**: Extract token → Validate → Load user → Set security context
-4. **Authorization**: Check roles/permissions for endpoint access
+4. **Authorization**: Check roleEnums/permissions for endpoint access

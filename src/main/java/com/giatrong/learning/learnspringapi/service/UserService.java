@@ -4,8 +4,9 @@ import com.giatrong.learning.learnspringapi.dto.request.User.UserCreateRequest;
 import com.giatrong.learning.learnspringapi.dto.request.User.UserListRequest;
 import com.giatrong.learning.learnspringapi.dto.request.User.UserUpdateRequest;
 import com.giatrong.learning.learnspringapi.dto.dtos.User.UserDto;
+import com.giatrong.learning.learnspringapi.entity.Role;
 import com.giatrong.learning.learnspringapi.entity.User;
-import com.giatrong.learning.learnspringapi.enums.Role;
+import com.giatrong.learning.learnspringapi.enums.RoleEnum;
 import com.giatrong.learning.learnspringapi.exception.AppException;
 import com.giatrong.learning.learnspringapi.exception.ResourceNotFoundException;
 import com.giatrong.learning.learnspringapi.mapper.UserMapper;
@@ -18,13 +19,16 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.crypto.password.PasswordEncoder; // Giả sử bạn có tiêm PasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Timer;
+import com.giatrong.learning.learnspringapi.enums.ErrorCode;
+import com.giatrong.learning.learnspringapi.repository.RoleRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +37,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final Counter userCreationCounter;
     private final Timer userFetchTimer;
@@ -65,7 +70,7 @@ public class UserService {
         if (userListRequest.getRole() != null && !userListRequest.getRole().isBlank()) {
             try {
                 // Chuyển đổi từ String trong DTO sang Enum để truy vấn
-                Role roleEnum = Role.valueOf(userListRequest.getRole().toUpperCase());
+                RoleEnum roleEnum = RoleEnum.valueOf(userListRequest.getRole().toUpperCase());
                 spec = spec.and((root, query, criteriaBuilder) ->
                         criteriaBuilder.equal(root.get("role"), roleEnum));
             } catch (IllegalArgumentException e) {
@@ -104,31 +109,31 @@ public class UserService {
     }
 
     @Timed(value= "user.creation.time", description = "Time spent creating a user")
+    @Transactional
     public UserDto createUser(UserCreateRequest request) {
-        log.info("Creating user {}", request);
-        // Kiểm tra xem username đã tồn tại chưa (ví dụ)
-        if (userRepository.existsUsersByFullName(request.getFullName())) {
-            log.warn("User with name {} already exists", request.getFullName());
-            throw new IllegalArgumentException("Username already exists");
+        // Check if username already exists
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new AppException(ErrorCode.USERNAME_ALREADY_TAKEN);
         }
 
-        // Dùng mapper để chuyển đổi an toàn từ Request DTO sang Entity
+        // Map request to entity
         User user = userMapper.toEntity(request);
-
-        // Xử lý logic nghiệp vụ không thuộc về mapper (như mã hóa mật khẩu)
+        user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        User savedUser = userRepository.save(user);
+        // Set default USER role
+        Role defaultRole = roleRepository.findByCode("USER")
+            .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        user.getRoles().add(defaultRole);
 
-        log.info("Created user {}", savedUser);
-        UserDto result = userMapper.toDto(savedUser);
-        
-        // Increment counter
-        userCreationCounter.increment();
-        log.info("User created successfully with metrics tracked");
-        
-        return result;
+        // Save user
+        User savedUser = userRepository.save(user);
+        log.info("User created successfully: {}", savedUser.getUsername());
+
+        return userMapper.toDto(savedUser);
     }
+
+    // Role assignment will be handled separately or via UserRole entity
 
     @CachePut(value = "users", key = "#userDto.id") // Luôn cập nhật cache
     public UserDto updateUser(Long id, UserUpdateRequest request) {

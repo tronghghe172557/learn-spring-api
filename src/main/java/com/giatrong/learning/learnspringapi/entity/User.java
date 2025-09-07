@@ -1,7 +1,6 @@
 package com.giatrong.learning.learnspringapi.entity;
 
 import com.giatrong.learning.learnspringapi.common.entities.BaseEntity;
-import com.giatrong.learning.learnspringapi.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,10 +10,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -25,7 +27,7 @@ import java.util.List;
 public class User extends BaseEntity implements UserDetails {
 
     @Column(nullable = false, unique = true)
-    @Size(min = 1 , max = 50, message = "Username must be between 1 and 50 characters")
+    @Size(min = 1, max = 50, message = "Username must be between 1 and 50 characters")
     private String username;
 
     @Column(nullable = false)
@@ -35,21 +37,24 @@ public class User extends BaseEntity implements UserDetails {
     private String fullName;
 
     @Column(unique = true)
-    @Email(message="Email should be valid")
+    @Email(message = "Email should be valid")
     private String email;
 
-    private Role role; // Ví dụ: "USER", "ADMIN", v.v.
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
 
-    // NOTE: Trong thực tế, bạn sẽ cần thêm một trường role, ví dụ:
-    // @Enumerated(EnumType.STRING)
-    // private Role role;
-    // Và getAuthorities() sẽ trả về role đó. Ở đây ta làm đơn giản.
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Trả về danh sách quyền của người dùng.
-        // Ví dụ: return List.of(new SimpleGrantedAuthority(role.name()));
-        return List.of(); // Để đơn giản, ta trả về danh sách rỗng
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getCode()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
@@ -81,4 +86,5 @@ public class User extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+    
 }

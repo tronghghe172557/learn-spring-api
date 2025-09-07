@@ -1,12 +1,14 @@
 package com.giatrong.learning.learnspringapi.dto.dtos.User;
 
-import com.giatrong.learning.learnspringapi.enums.Role;
+import com.giatrong.learning.learnspringapi.dto.dtos.Role.RoleDto;
 import com.giatrong.learning.learnspringapi.enums.SwaggerDefaultValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Set;
 
 @Data
 @Builder
@@ -27,6 +29,6 @@ public class UserDto {
     @Schema(description = SwaggerDefaultValue.EMAIL_DESC, example = SwaggerDefaultValue.EMAIL_EXAMPLE)
     private String email;
     
-    @Schema(description = SwaggerDefaultValue.ROLE_DESC, example = SwaggerDefaultValue.ROLE_EXAMPLE)
-    private Role role;
+    @Schema(description = "User roles")
+    private Set<RoleDto> roles;
 }

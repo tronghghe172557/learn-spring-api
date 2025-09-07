@@ -1,6 +1,6 @@
 package com.giatrong.learning.learnspringapi.dto.request.User;
 
-import com.giatrong.learning.learnspringapi.enums.Role;
+import com.giatrong.learning.learnspringapi.enums.RoleEnum;
 import com.giatrong.learning.learnspringapi.enums.SwaggerDefaultValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -21,5 +21,5 @@ public class UserUpdateRequest {
     private String email;
     
     @Schema(description = SwaggerDefaultValue.ROLE_DESC, example = SwaggerDefaultValue.ROLE_EXAMPLE)
-    private Role role;
+    private RoleEnum roleEnum;
 }

@@ -4,12 +4,11 @@ import com.giatrong.learning.learnspringapi.dto.request.User.UserCreateRequest;
 import com.giatrong.learning.learnspringapi.dto.request.User.UserUpdateRequest;
 import com.giatrong.learning.learnspringapi.dto.dtos.User.UserDto;
 import com.giatrong.learning.learnspringapi.entity.User;
-import com.giatrong.learning.learnspringapi.enums.Role;
 import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {RoleMapper.class})
 public interface UserMapper {
 
     /* =====================
@@ -28,7 +27,7 @@ public interface UserMapper {
     /* =====================
        CREATE REQUEST → ENTITY
        ===================== */
-    @Mapping(target = "role", expression = "java(getDefaultUserRole())")
+    @Mapping(target = "roles", ignore = true) // set default role in service
     @Mapping(target = "password", ignore = true) // encode in service
     @Mapping(target = "username", ignore = true) // set in service
     User toEntity(UserCreateRequest request);
@@ -38,21 +37,7 @@ public interface UserMapper {
        ===================== */
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "username", ignore = true) // username not update
+    @Mapping(target = "roles", ignore = true) // roles handle separately
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(UserUpdateRequest request, @MappingTarget User user);
-
-    /* =====================
-       CUSTOM MAPPINGS
-       ===================== */
-//    @Named("listRoleToString")
-//    default String mapRolesToString(List<Role> roles) {
-//        if (roles == null || roles.isEmpty()) {
-//            return null;
-//        }
-//        return roles.get(0).getValue();
-//    }
-
-    default Role getDefaultUserRole() {
-        return Role.USER;
-    }
 }
